@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    run: test
+  name: test
+spec:
+  containers:
+  - image: quay.io/afrosi_rh/targetcli:latest
+    imagePullPolicy: Always
+    name: test
+    securityContext:
+      privileged: true
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /lib/modules/
+      name: modules
+    - mountPath: /var/run/dbus
+      name: dbus
+    - mountPath: /sys/kernel/config
+      name: kernel-config
+    - mountPath: /disks
+      name: disks
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-5l4qs
+      readOnly: true
+  volumes:
+  - hostPath:
+      path: /lib/modules/
+      type: Directory
+    name: modules
+  - hostPath:
+      path: /var/run/dbus
+      type: Directory
+    name: dbus
+  - hostPath:
+      path: /sys/kernel/config
+      type: Directory
+    name: kernel-config
+  - name: disks
+    persistentVolumeClaim:
+      claimName: disks
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: disks
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  volumeMode: Filesystem
